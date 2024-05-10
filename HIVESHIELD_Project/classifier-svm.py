@@ -2,15 +2,15 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-import missingno as msno
+#import missingno as msno
 from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
-from tensorflow import keras
-from keras.models import Sequential
-from keras.layers import Dense
-from tensorflow.python.keras import layers
+#import tensorflow as tf
+#from tensorflow import keras
+#from keras.models import Sequential
+#from keras.layers import Dense
+#from tensorflow.python.keras import layers
 #from tensorflow.python.keras.layers import Dense
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score
@@ -18,7 +18,6 @@ from sklearn.metrics import classification_report,confusion_matrix
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_curve
-
 from sklearn.svm import SVC
 
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -34,43 +33,44 @@ df.head(10)
 print("This Dataset has {} rows and {} columns".format(df.shape[0], df.shape[1]))
 df.info()
 df.describe()
-msno.matrix(df)
+#msno.matrix(df)
 df.isnull().sum()
 (df.isnull().sum()/df.isnull().count())*100
 df.dropna(inplace=True)
 print(df.isnull().sum())
 print("This Dataframe has {} rows and {} columns after removing null values".format(df.shape[0], df.shape[1]))
 
-malign = df[df['label'] == 1]
-benign = df[df['label'] == 0]
+malacious = df[df['label'] == 1]
+normal = df[df['label'] == 0]
 
-print('Number of DDOS attacks that has occured :',round((len(malign)/df.shape[0])*100,2),'%')
-print('Number of DDOS attacks that has not occured :',round((len(benign)/df.shape[0])*100,2),'%')
+print('Number of DDOS attacks that has occured :',round((len(malacious)/df.shape[0])*100,2),'%')
+print('Number of DDOS attacks that has not occured :',round((len(normal)/df.shape[0])*100,2),'%')
 
 
 # Let's plot the Label class against the Frequency
-labels = ['benign','malign']
+labels = ['normal','malacious']
+# computes the percentage distribution of each label class
 classes = pd.value_counts(df['label'], sort = True) / df['label'].count() *100
-classes.plot(kind = 'bar')
-#plt.title("Label class distribution")
-#plt.xticks(range(2), labels)
-#plt.xlabel("Label")
-#plt.ylabel("Frequency %")
+classes.plot(kind = 'line') #creates a line plot of the label class distribution
+plt.title("Label class distribution")
+plt.xticks(range(2), labels)
+plt.xlabel("Label")
+plt.ylabel("Frequency %")
 
 sns.pairplot(df,hue="label",vars=['pktcount','flows','bytecount'])
 
 df.columns
 print(df.apply(lambda col: col.unique()))
 numerical_features = [feature for feature in df.columns if df[feature].dtypes != 'O']
-print("The number of numerical features is",len(numerical_features),"and they are : \n",numerical_features)
+#print("The number of numerical features is",len(numerical_features),"and they are : \n",numerical_features)
 categorical_features = [feature for feature in df.columns if df[feature].dtypes == 'O']
-print("The number of categorical features is",len(categorical_features),"and they are : \n",categorical_features)
+#print("The number of categorical features is",len(categorical_features),"and they are : \n",categorical_features)
 
 # number of unique values in each numerical variable
 df[numerical_features].nunique(axis=0)
 #discrete numerical features
 discrete_feature = [feature for feature in numerical_features if df[feature].nunique()<=15 and feature != 'label']
-print("The number of discrete features is",len(discrete_feature),"and they are : \n",discrete_feature)
+#print("The number of discrete features is",len(discrete_feature),"and they are : \n",discrete_feature)
 df[discrete_feature].head(10)
 
 continuous_feature=[feature for feature in numerical_features if feature not in discrete_feature + ['label']]
@@ -85,11 +85,21 @@ def histplot_distribution(col):
     sns.histplot(data=df,x=col, kde=True,color="red").set(title = 'Distribution of ' + col)
 
 ## Lets analyse the categorical values by creating histograms to understand the distribution
-f = plt.figure(figsize=(8,20))
+'''f = plt.figure(figsize=(8,20))
 for i in range(len(categorical_features)):
     f.add_subplot(len(categorical_features), 1, i+1)
-    countplot_distribution(categorical_features[i])
+    countplot_distribution(categorical_features[i])'''
 #plt.show()
+plt.figure(figsize=(8, 20))
+for i in range(len(categorical_features)):
+    plt.subplot(len(categorical_features), 1, i+1)
+    value_counts = df[categorical_features[i]].value_counts()
+    plt.bar(value_counts.index, value_counts.values)
+    plt.xlabel(categorical_features[i])
+    plt.ylabel('Count')
+    plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
+plt.tight_layout()  # Adjust layout to prevent overlapping
+plt.show()
 
 for i in range(len(categorical_features)):
     g = sns.catplot(data=df,x="tot_dur",y=categorical_features[i],kind="boxen").set(title = categorical_features[i])
@@ -112,29 +122,29 @@ for feature in continuous_feature:
     else:
         data[feature]=np.log(data[feature])
         data['pktcount']=np.log(data['pktcount'])
-        plt.figure(figsize=(20,20))
-        sns.relplot(data=data, x=data[feature],y=data['pktcount'],hue="Protocol",style="Protocol",
-                    col="label",kind="scatter").set(title="logarithmic Relplot of feature : " + feature)
+        #plt.figure(figsize=(20,20))
+        #sns.relplot(data=data, x=data[feature],y=data['pktcount'],hue="Protocol",style="Protocol",
+        #           col="label",kind="scatter").set(title="logarithmic Relplot of feature : " + feature)
 
 for feature in discrete_feature:
-    plt.figure(figsize=(8,4))
+    #plt.figure(figsize=(8,4))
     cat_num = df[feature].value_counts()
-    sns.barplot(x=cat_num.index, y = cat_num).set(title = "Graph for "+feature, ylabel="Frequency")
+    #sns.barplot(x=cat_num.index, y = cat_num).set(title = "Graph for "+feature, ylabel="Frequency")
     #plt.show()
 
-def get_percentage_malign_protocols():
+def get_percentage_malacious_protocols():
     arr = [x for x, y in zip(df['Protocol'], df['label']) if y == 1]
     perc_arr = []
     for i in ['UDP','TCP','ICMP']:
         perc_arr.append(arr.count(i)/len(arr) *100)
     return perc_arr
 fig1, ax1 = plt.subplots(figsize=[7,7])
-ax1.pie(get_percentage_malign_protocols(), explode=(0.1, 0, 0), autopct='%1.1f%%',
+ax1.pie(get_percentage_malacious_protocols(), explode=(0.1, 0, 0), autopct='%1.1f%%',
         shadow=True, startangle=90)
 ax1.axis('equal')
 ax1.legend(['UDP', 'TCP', 'ICMP'],loc="best")
-#plt.title('Distribution of protocols for malign attacks',fontsize = 14)
-#plt.show()
+plt.title('Distribution of protocols for malacious attacks',fontsize = 14)
+plt.show()
 fig, ax = plt.subplots(figsize=[10, 10])
 sns.boxplot(
     data=df,
@@ -184,25 +194,25 @@ history_org = model.fit(
 loss = history_org.history['loss']
 val_loss = history_org.history['val_loss']
 epochs = range(1, len(loss) + 1)
-'''plt.plot(epochs, loss, 'g', label = 'Training Loss')
-plt.plot(epochs, val_loss, 'r', label = 'Validation Loss')
-plt.title('Loss v/s No. of epochs')
-plt.xlabel('Number of Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.show()'''
+#plt.plot(epochs, loss, 'g', label = 'Training Loss')
+#plt.plot(epochs, val_loss, 'r', label = 'Validation Loss')
+#plt.title('Loss v/s No. of epochs')
+#plt.xlabel('Number of Epochs')
+#plt.ylabel('Loss')
+#plt.legend()
+#plt.show()
 loss = history_org.history['accuracy']
 val_loss = history_org.history['val_accuracy']
-'''plt.plot(epochs, loss, 'g', label = 'Training accuracy')
-plt.plot(epochs, val_loss, 'r', label = 'Validation accuracy')
-plt.title('Accuracy Scores v/s Number of Epochs')
-plt.xlabel('No. of Epochs')
-plt.ylabel('Accuracy Score')
-plt.legend()
-plt.show()'''
+#plt.plot(epochs, loss, 'g', label = 'Training accuracy')
+#plt.plot(epochs, val_loss, 'r', label = 'Validation accuracy')
+#plt.title('Accuracy Scores v/s Number of Epochs')
+#plt.xlabel('No. of Epochs')
+#plt.ylabel('Accuracy Score')
+#plt.legend()
+plt.show()
 
 loss, accuracy = model.evaluate(X_test, y_test)
-print('Accuracy of Deep neural Network : %.2f' % (accuracy*100))
+#print('Accuracy of Deep neural Network : %.2f' % (accuracy*100))
 Classifier_accuracy.append(accuracy*100)
 
 svc_clf = SVC()
