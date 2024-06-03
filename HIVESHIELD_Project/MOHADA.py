@@ -108,7 +108,7 @@ class DataPreprocessor:
         
                 # Update positions using DA (e.g., update based on fitness value)
                 # Implement DA update logic here
-            print("Success of Dragonfly Algorithm")
+            print("dragon success imple")
             return best_solution  
         
     def artificial_bee_colony(self,X_train, X_test, y_train, y_test, max_iterations):
@@ -135,7 +135,7 @@ class DataPreprocessor:
         
             # Update positions using ABC (e.g., employed bees, onlooker bees, scout bees)
             # Implement ABC update logic here
-            print("Success of ")
+            print("abc success")
             return best_solution   
         
 
